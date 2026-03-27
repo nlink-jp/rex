@@ -17,9 +17,13 @@ This tool is written in Go and runs as a single, cross-platform executable.
 
 ---
 
-## Installation & Build
+## Installation
 
-A Go environment must be set up.
+Pre-compiled binaries for macOS, Windows, and Linux are available on the [Releases](https://github.com/nlink-jp/rex/releases) page.
+
+## Building
+
+To build from source, a Go environment must be set up.
 
 The version of the built binary is automatically determined from git tags. For example, if your latest tag is `v1.0.0`, the binary will be versioned as `v1.0.0`. If there are uncommitted changes, a `-dirty` suffix will be added (e.g., `v1.0.0-dirty`).
 
