@@ -5,7 +5,7 @@
 # --- Variables ---
 
 # Target binary name
-TARGET := rex-go
+TARGET := rex
 
 # Version information to be embedded in the binary.
 # For dynamic versioning from git, you can use:

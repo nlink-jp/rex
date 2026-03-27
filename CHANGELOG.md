@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.1 - 2026-03-28
+
+### Internal
+
+- Added `go.mod` to establish Go module (`github.com/nlink-jp/rex`) following repository transfer to nlink-jp organization.
+- Renamed binary from `rex-go` to `rex`.
+
 ## v1.0.0 - 2025-08-21
 
 ### Added
