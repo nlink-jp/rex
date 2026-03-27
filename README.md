@@ -1,6 +1,6 @@
-# rex-go
+# rex
 
-`rex-go` is a command-line tool that extracts fields from text data using regular expressions and outputs them in JSON format. Like Splunk's `rex` command, its purpose is to easily create structured data from unstructured text such as log files.
+`rex` is a command-line tool that extracts fields from text data using regular expressions and outputs them in JSON format. Like Splunk's `rex` command, its purpose is to easily create structured data from unstructured text such as log files.
 
 This tool is written in Go and runs as a single, cross-platform executable.
 
@@ -26,11 +26,9 @@ The version of the built binary is automatically determined from git tags. For e
 Simply run `make` to build the application. The following targets are available:
 
 - **`make build`**: Builds a single executable for your current operating system and architecture in the `dist/` directory.
-- **`make all`**: Cross-compiles for all target platforms (Linux, Windows, macOS) and places the binaries in platform-specific subdirectories within `dist/`.
-- **`make package`**: Builds all binaries and then creates compressed archives (.zip for Windows, .tar.gz for Linux/macOS) for each platform in the `dist/archives/` directory. These archives are ready for distribution.
+- **`make build-all`**: Cross-compiles for all target platforms (Linux amd64/arm64, macOS amd64/arm64, Windows amd64) and places the binaries flat in `dist/`.
+- **`make package`**: Builds all binaries and creates `.zip` archives for each platform in `dist/`. These archives are ready for distribution.
 - **`make clean`**: Removes the `dist/` directory and all build artifacts.
-
-For most users, `make all` is the recommended command to generate all distributable files. If you intend to distribute the binaries, `make package` is recommended.
 
 ---
 
@@ -39,7 +37,7 @@ For most users, `make all` is the recommended command to generate all distributa
 ### Command-Line Options
 
 ```
-Usage of rex-go:
+Usage of rex:
 A command-line tool to extract and merge fields from text using all specified regex patterns.
 
   -f string
@@ -63,7 +61,7 @@ Extract information from an Apache access log.
 
 ```bash
 echo '127.0.0.1 - frank [10/Oct/2000] "GET /api" 200' | \
-./rex-go -r '(?P<client_ip>[^ ]+) - (?P<user>[^ ]+) \[(?P<date>[^\]]+)\] "(?P<method>\w+) (?P<uri>[^ "]+)" (?P<status>\d{3})'
+./rex -r '(?P<client_ip>[^ ]+) - (?P<user>[^ ]+) \[(?P<date>[^\]]+)\] "(?P<method>\w+) (?P<uri>[^ "]+)" (?P<status>\d{3})'
 ```
 
 **Output:**
@@ -77,7 +75,7 @@ Extract both `level` and `status` from a single log line using different regular
 
 ```bash
 echo "request failed with level=error, status=500" | \
-./rex-go -r 'level=(?P<level>\w+)' -r 'status=(?P<status>\d+)'
+./rex -r 'level=(?P<level>\w+)' -r 'status=(?P<status>\d+)'
 ```
 
 **Output:**
@@ -91,7 +89,7 @@ Extract values from both `user=` and `alias=` into a common field named `name`, 
 
 ```bash
 echo "user=admin, alias=root" | \
-./rex-go -r 'user=(?P<name>\w+)' -r 'alias=(?P<name>\w+)'
+./rex -r 'user=(?P<name>\w+)' -r 'alias=(?P<name>\w+)'
 ```
 
 **Output:**
@@ -105,7 +103,7 @@ Even if duplicate values are captured, the `-u` flag ensures only unique values 
 
 ```bash
 echo "user=admin, alias=root, user=admin" | \
-./rex-go -u -r 'user=(?P<name>\w+)' -r 'alias=(?P<name>\w+)'
+./rex -u -r 'user=(?P<name>\w+)' -r 'alias=(?P<name>\w+)'
 ```
 
 **Output:**
@@ -129,7 +127,7 @@ Create a file named `patterns.json` with the following content:
 Run the tool, specifying the file with the `-f` option.
 
 ```bash
-echo "level=info, status=200" | ./rex-go -f patterns.json
+echo "level=info, status=200" | ./rex -f patterns.json
 ```
 
 **Output:**
