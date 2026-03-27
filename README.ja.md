@@ -1,6 +1,6 @@
-# rex-go
+# rex
 
-`rex-go` は、テキストデータから正規表現を使ってフィールドを抽出し、JSON形式で出力するコマンドラインツールです。Splunkの `rex` コマンドのように、ログファイルなどの非構造化テキストから構造化データを手軽に作成することを目的としています。
+`rex` は、テキストデータから正規表現を使ってフィールドを抽出し、JSON形式で出力するコマンドラインツールです。Splunkの `rex` コマンドのように、ログファイルなどの非構造化テキストから構造化データを手軽に作成することを目的としています。
 
 このツールはGo言語で書かれており、単一の実行ファイルとしてクロスプラットフォームで動作します。
 
@@ -26,12 +26,9 @@ Go言語の環境がセットアップされている必要があります。
 `make` コマンドを実行するだけでアプリケーションをビルドできます。以下のターゲットが利用可能です。
 
 - **`make build`**: 現在のOSとアーキテクチャ向けの実行ファイルを `dist/` ディレクトリにビルドします。
-- **`make all`**: 全てのターゲットプラットフォーム（Linux, Windows, macOS）向けにクロスコンパイルを行い、`dist/` 内の各プラットフォーム用サブディレクトリにバイナリを配置します。
-
-- **`make package`**: 全てのバイナリをビルドし、各プラットフォーム向けに圧縮アーカイブ（Windows向けは.zip、Linux/macOS向けは.tar.gz）を `dist/archives/` ディレクトリに作成します。これらのアーカイブは配布準備ができています。
+- **`make build-all`**: 全てのターゲットプラットフォーム（Linux amd64/arm64、macOS amd64/arm64、Windows amd64）向けにクロスコンパイルを行い、`dist/` にバイナリを配置します。
+- **`make package`**: 全てのバイナリをビルドし、各プラットフォーム向けに `.zip` アーカイブを `dist/` ディレクトリに作成します。これらのアーカイブは配布準備ができています。
 - **`make clean`**: `dist/` ディレクトリと全てのビルド成果物を削除します。
-
-通常は `make all` を実行すれば、配布用の全ファイルが生成されます。バイナリを配布する予定がある場合は、`make package` を推奨します。
 
 ---
 
@@ -40,7 +37,7 @@ Go言語の環境がセットアップされている必要があります。
 ### コマンドラインオプション
 
 ```
-Usage of rex-go:
+Usage of rex:
 A command-line tool to extract and merge fields from text using all specified regex patterns.
 
   -f string
@@ -64,7 +61,7 @@ Apacheのアクセスログから情報を抽出します。
 
 ```bash
 echo '127.0.0.1 - frank [10/Oct/2000] "GET /api" 200' | \
-./rex-go -r '(?P<client_ip>[^ ]+) - (?P<user>[^ ]+) \[(?P<date>[^\]]+)\] "(?P<method>\w+) (?P<uri>[^ "]+)" (?P<status>\d{3})'
+./rex -r '(?P<client_ip>[^ ]+) - (?P<user>[^ ]+) \[(?P<date>[^\]]+)\] "(?P<method>\w+) (?P<uri>[^ "]+)" (?P<status>\d{3})'
 ```
 
 **出力:**
@@ -78,7 +75,7 @@ echo '127.0.0.1 - frank [10/Oct/2000] "GET /api" 200' | \
 
 ```bash
 echo "request failed with level=error, status=500" | \
-./rex-go -r 'level=(?P<level>\w+)' -r 'status=(?P<status>\d+)'
+./rex -r 'level=(?P<level>\w+)' -r 'status=(?P<status>\d+)'
 ```
 
 **出力:**
@@ -92,7 +89,7 @@ echo "request failed with level=error, status=500" | \
 
 ```bash
 echo "user=admin, alias=root" | \
-./rex-go -r 'user=(?P<name>\w+)' -r 'alias=(?P<name>\w+)'
+./rex -r 'user=(?P<name>\w+)' -r 'alias=(?P<name>\w+)'
 ```
 
 **出力:**
@@ -106,7 +103,7 @@ echo "user=admin, alias=root" | \
 
 ```bash
 echo "user=admin, alias=root, user=admin" | \
-./rex-go -u -r 'user=(?P<name>\w+)' -r 'alias=(?P<name>\w+)'
+./rex -u -r 'user=(?P<name>\w+)' -r 'alias=(?P<name>\w+)'
 ```
 
 **出力:**
@@ -130,7 +127,7 @@ echo "user=admin, alias=root, user=admin" | \
 このファイルを `-f` オプションで指定して実行します。
 
 ```bash
-echo "level=info, status=200" | ./rex-go -f patterns.json
+echo "level=info, status=200" | ./rex -f patterns.json
 ```
 
 **出力:**
