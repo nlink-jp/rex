@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.2 - 2026-03-28
+
+### Changed
+- Unified Makefile: replaced macOS universal binary with separate `darwin/amd64` and `darwin/arm64` targets; standardized targets (`build`, `build-all`, `test`, `lint`, `check`, `package`, `clean`, `help`) and output layout (`dist/` flat directory, `.zip` archives).
+
 ## v1.0.1 - 2026-03-28
 
 ### Internal
