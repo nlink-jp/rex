@@ -2,6 +2,8 @@
 
 `rex` is a command-line tool that extracts fields from text data using regular expressions and outputs them in JSON format. Like Splunk's `rex` command, its purpose is to easily create structured data from unstructured text such as log files.
 
+With the `--field` option, `rex` can also operate on JSON input — applying regex to a specific field value and merging the extracted fields back into the original JSON object (like Splunk's `rex field=TARGET`).
+
 This tool is written in Go and runs as a single, cross-platform executable.
 
 ---
@@ -11,6 +13,7 @@ This tool is written in Go and runs as a single, cross-platform executable.
 - **Flexible I/O**: Supports input from standard input (pipes) or files, and writes results to standard output or files.
 - **Multiple Regex Patterns**: Specify multiple regular expression patterns from the command line (`-r`) or a configuration file (`-f`).
 - **Merged Results**: All specified regular expressions are applied to each line of input, and the matched results are merged into a single JSON object.
+- **JSON Field Mode**: With `--field`, apply regex to a specific field within JSON input and merge results back into the original object. Supports dot-notation for nested fields (e.g. `event.raw`).
 - **Multi-value Arrays**: If the same field name is captured by multiple patterns, its values are automatically collected into an array.
 - **Unique Values**: The `-u` option ensures that values in a multi-valued array are unique.
 - **Portable**: Generates a single executable file that runs on machines without a Go runtime environment.
@@ -46,6 +49,8 @@ A command-line tool to extract and merge fields from text using all specified re
 
   -f string
     	Path to a JSON file containing an array of regex patterns.
+  --field string
+    	JSON field to apply regex to (dot-notation for nested fields). Enables JSON input mode.
   -i string
     	Input file path (default: stdin).
   -o string
@@ -115,7 +120,35 @@ echo "user=admin, alias=root, user=admin" | \
 {"name":["admin","root"]}
 ```
 
-#### 5. Using a Configuration File (with `-f` option)
+#### 5. JSON Field Mode (with `--field` option)
+
+Apply regex to a specific field within JSON input and merge extracted fields back into the original object.
+
+```bash
+echo '{"message":"192.168.1.1 GET /index.html","host":"web01"}' | \
+./rex --field message -r '(?P<ip>\d+\.\d+\.\d+\.\d+)'
+```
+
+**Output:**
+```json
+{"host":"web01","ip":"192.168.1.1","message":"192.168.1.1 GET /index.html"}
+```
+
+#### 6. Nested JSON Fields (dot-notation)
+
+Use dot-notation to target fields nested within JSON objects.
+
+```bash
+echo '{"event":{"raw":"user=admin action=login"},"id":1}' | \
+./rex --field event.raw -r 'user=(?P<user>\w+)' -r 'action=(?P<action>\w+)'
+```
+
+**Output:**
+```json
+{"action":"login","event":{"raw":"user=admin action=login"},"id":1,"user":"admin"}
+```
+
+#### 7. Using a Configuration File (with `-f` option)
 
 Create a file named `patterns.json` with the following content:
 

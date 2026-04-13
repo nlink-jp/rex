@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.1.0 - 2026-04-14
+
+### Added
+
+- `--field` option: JSON input mode — apply regex to a specific field value within
+  JSON input and merge extracted fields back into the original object
+  (like Splunk's `rex field=TARGET`)
+- Dot-notation support for nested JSON fields (e.g. `--field event.raw`)
+- Lines where the target field is missing or not a string are passed through unchanged
+- Non-JSON input in `--field` mode causes an error with line number
+
+### Changed
+
+- Refactored into separate files (`process.go`, `field.go`) for testability
+- Added comprehensive test suite (`field_test.go`, `process_test.go`)
+- Version output changed from `rex-go version` to `rex version`
+
 ## v1.0.2 - 2026-03-28
 
 ### Changed

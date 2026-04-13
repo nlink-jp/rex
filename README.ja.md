@@ -2,6 +2,8 @@
 
 `rex` は、テキストデータから正規表現を使ってフィールドを抽出し、JSON形式で出力するコマンドラインツールです。Splunkの `rex` コマンドのように、ログファイルなどの非構造化テキストから構造化データを手軽に作成することを目的としています。
 
+`--field` オプションを使うと、JSON入力に対して特定のフィールド値に正規表現を適用し、抽出結果を元のJSONオブジェクトにマージして出力できます（Splunkの `rex field=TARGET` に相当）。
+
 このツールはGo言語で書かれており、単一の実行ファイルとしてクロスプラットフォームで動作します。
 
 ---
@@ -11,6 +13,7 @@
 - **柔軟な入出力**: 標準入力（パイプ）またはファイルからの入力をサポートし、結果を標準出力またはファイルへ書き出せます。
 - **複数の正規表現**: コマンドライン (`-r`) や設定ファイル (`-f`) から複数の正規表現パターンを指定できます。
 - **結果のマージ**: 指定されたすべての正規表現が入力の各行に適用され、マッチした結果は1つのJSONオブジェクトにマージされます。
+- **JSONフィールドモード**: `--field` で JSON入力の特定フィールドに正規表現を適用し、結果を元のオブジェクトにマージして出力します。ドット記法によるネストフィールド（例: `event.raw`）にも対応しています。
 - **複数値の配列化**: 複数のパターンで同じフィールド名がキャプチャされた場合、そのフィールドの値は自動的に配列にまとめられます。
 - **値のユニーク化**: `-u` オプションを使用することで、配列化された値の重複を排除できます。
 - **ポータブル**: Goの実行環境がないマシンでも動作する、単一の実行可能ファイルを生成します。
@@ -48,6 +51,8 @@ A command-line tool to extract and merge fields from text using all specified re
 
   -f string
     	Path to a JSON file containing an array of regex patterns.
+  --field string
+    	JSON field to apply regex to (dot-notation for nested fields). Enables JSON input mode.
   -i string
     	Input file path (default: stdin).
   -o string
@@ -117,7 +122,35 @@ echo "user=admin, alias=root, user=admin" | \
 {"name":["admin","root"]}
 ```
 
-#### 5. 設定ファイルを使う (`-f` オプション)
+#### 5. JSONフィールドモード (`--field` オプション)
+
+JSON入力の特定フィールドに正規表現を適用し、抽出したフィールドを元のJSONオブジェクトにマージします。
+
+```bash
+echo '{"message":"192.168.1.1 GET /index.html","host":"web01"}' | \
+./rex --field message -r '(?P<ip>\d+\.\d+\.\d+\.\d+)'
+```
+
+**出力:**
+```json
+{"host":"web01","ip":"192.168.1.1","message":"192.168.1.1 GET /index.html"}
+```
+
+#### 6. ネストされたJSONフィールド（ドット記法）
+
+ドット記法を使って、JSONオブジェクト内のネストされたフィールドを対象にできます。
+
+```bash
+echo '{"event":{"raw":"user=admin action=login"},"id":1}' | \
+./rex --field event.raw -r 'user=(?P<user>\w+)' -r 'action=(?P<action>\w+)'
+```
+
+**出力:**
+```json
+{"action":"login","event":{"raw":"user=admin action=login"},"id":1,"user":"admin"}
+```
+
+#### 7. 設定ファイルを使う (`-f` オプション)
 
 `patterns.json` という名前で以下のファイルを作成します。
 
