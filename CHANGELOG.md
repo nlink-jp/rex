@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.2.0 - 2026-04-14
+
+### Changed
+
+- Refactored main.go for testability: extracted `loadPatterns()`,
+  `compilePatterns()`, `run()`, and `execute()` as pure functions
+- Architecture documentation added (`docs/en/`, `docs/ja/`)
+- Test coverage: 44% → 79% (56 tests, up from 20)
+
 ## v1.1.0 - 2026-04-14
 
 ### Added

@@ -85,6 +85,50 @@ func TestApplyRegexes_DuplicateBecomesArray(t *testing.T) {
 	}
 }
 
+func TestApplyRegexes_TripleMatch(t *testing.T) {
+	regexes := compileRegexes(t,
+		`a=(?P<val>\S+)`,
+		`b=(?P<val>\S+)`,
+		`c=(?P<val>\S+)`,
+	)
+	result := applyRegexes("a=1 b=2 c=3", regexes, false)
+
+	slice, ok := result["val"].([]string)
+	if !ok {
+		t.Fatalf("expected []string, got %T: %v", result["val"], result["val"])
+	}
+	if len(slice) != 3 || slice[0] != "1" || slice[1] != "2" || slice[2] != "3" {
+		t.Errorf("expected [1 2 3], got %v", slice)
+	}
+}
+
+func TestApplyRegexes_EmptyCapture(t *testing.T) {
+	regexes := compileRegexes(t, `user=(?P<user>\w*)`)
+	result := applyRegexes("user=", regexes, false)
+
+	if result["user"] != "" {
+		t.Errorf("expected empty string, got %q", result["user"])
+	}
+}
+
+func TestApplyRegexes_UniqueWithArray(t *testing.T) {
+	regexes := compileRegexes(t,
+		`a=(?P<v>\S+)`,
+		`b=(?P<v>\S+)`,
+		`c=(?P<v>\S+)`,
+	)
+	// a and c have same value "x", b is "y" — unique should deduplicate
+	result := applyRegexes("a=x b=y c=x", regexes, true)
+
+	slice, ok := result["v"].([]string)
+	if !ok {
+		t.Fatalf("expected []string, got %T: %v", result["v"], result["v"])
+	}
+	if len(slice) != 2 || slice[0] != "x" || slice[1] != "y" {
+		t.Errorf("expected [x y], got %v", slice)
+	}
+}
+
 // --- processLines tests (text mode) ---
 
 func TestProcessLines_BasicExtraction(t *testing.T) {
@@ -105,6 +149,34 @@ func TestProcessLines_BasicExtraction(t *testing.T) {
 	json.Unmarshal([]byte(lines[0]), &obj)
 	if obj["ip"] != "192.168.1.1" {
 		t.Errorf("line 1: expected ip=192.168.1.1, got %v", obj["ip"])
+	}
+}
+
+func TestProcessLines_EmptyInput(t *testing.T) {
+	regexes := compileRegexes(t, `(?P<ip>\d+\.\d+\.\d+\.\d+)`)
+	var buf bytes.Buffer
+
+	if err := processLines(&buf, strings.NewReader(""), regexes, false); err != nil {
+		t.Fatal(err)
+	}
+
+	if buf.String() != "" {
+		t.Errorf("expected empty output for empty input, got %q", buf.String())
+	}
+}
+
+func TestProcessLines_MixedMatchNoMatch(t *testing.T) {
+	regexes := compileRegexes(t, `(?P<ip>\d+\.\d+\.\d+\.\d+)`)
+	input := "no match\n192.168.1.1 hit\nstill no match\n10.0.0.1 hit\n"
+	var buf bytes.Buffer
+
+	if err := processLines(&buf, strings.NewReader(input), regexes, false); err != nil {
+		t.Fatal(err)
+	}
+
+	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
+	if len(lines) != 2 {
+		t.Fatalf("expected 2 output lines (only matches), got %d: %v", len(lines), lines)
 	}
 }
 
@@ -278,6 +350,83 @@ func TestProcessJSON_UniqueFlag(t *testing.T) {
 	json.Unmarshal(buf.Bytes(), &obj)
 	if obj["addr"] != "10.0.0.1" {
 		t.Errorf("expected single addr=10.0.0.1, got %v", obj["addr"])
+	}
+}
+
+func TestProcessJSON_EmptyInput(t *testing.T) {
+	regexes := compileRegexes(t, `(?P<ip>\d+\.\d+\.\d+\.\d+)`)
+	var buf bytes.Buffer
+
+	if err := processJSON(&buf, strings.NewReader(""), regexes, false, "message"); err != nil {
+		t.Fatal(err)
+	}
+
+	if buf.String() != "" {
+		t.Errorf("expected empty output for empty input, got %q", buf.String())
+	}
+}
+
+func TestProcessJSON_EmptyObject(t *testing.T) {
+	regexes := compileRegexes(t, `(?P<ip>\d+\.\d+\.\d+\.\d+)`)
+	input := "{}\n"
+	var buf bytes.Buffer
+
+	if err := processJSON(&buf, strings.NewReader(input), regexes, false, "message"); err != nil {
+		t.Fatal(err)
+	}
+
+	// Empty object should pass through (field missing)
+	got := strings.TrimSpace(buf.String())
+	if got != "{}" {
+		t.Errorf("expected {}, got %q", got)
+	}
+}
+
+func TestProcessJSON_NullFieldValue(t *testing.T) {
+	regexes := compileRegexes(t, `(?P<ip>\d+\.\d+\.\d+\.\d+)`)
+	input := `{"message":null,"host":"web01"}` + "\n"
+	var buf bytes.Buffer
+
+	if err := processJSON(&buf, strings.NewReader(input), regexes, false, "message"); err != nil {
+		t.Fatal(err)
+	}
+
+	var obj map[string]interface{}
+	json.Unmarshal(buf.Bytes(), &obj)
+	if _, exists := obj["ip"]; exists {
+		t.Error("ip should not be present when field value is null")
+	}
+}
+
+func TestProcessJSON_ArrayFieldValue(t *testing.T) {
+	regexes := compileRegexes(t, `(?P<ip>\d+\.\d+\.\d+\.\d+)`)
+	input := `{"message":["a","b"],"host":"web01"}` + "\n"
+	var buf bytes.Buffer
+
+	if err := processJSON(&buf, strings.NewReader(input), regexes, false, "message"); err != nil {
+		t.Fatal(err)
+	}
+
+	var obj map[string]interface{}
+	json.Unmarshal(buf.Bytes(), &obj)
+	if _, exists := obj["ip"]; exists {
+		t.Error("ip should not be present when field value is an array")
+	}
+}
+
+func TestProcessJSON_DeepNesting(t *testing.T) {
+	regexes := compileRegexes(t, `user=(?P<user>\w+)`)
+	input := `{"a":{"b":{"c":"user=admin"}}}` + "\n"
+	var buf bytes.Buffer
+
+	if err := processJSON(&buf, strings.NewReader(input), regexes, false, "a.b.c"); err != nil {
+		t.Fatal(err)
+	}
+
+	var obj map[string]interface{}
+	json.Unmarshal(buf.Bytes(), &obj)
+	if obj["user"] != "admin" {
+		t.Errorf("expected user=admin from 3-level nesting, got %v", obj["user"])
 	}
 }
 

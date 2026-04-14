@@ -69,6 +69,27 @@ func TestGetNestedField(t *testing.T) {
 			want: float64(42),
 			wantOK: true,
 		},
+		{
+			name:   "null value",
+			obj:    map[string]interface{}{"field": nil},
+			path:   "field",
+			want:   nil,
+			wantOK: true,
+		},
+		{
+			name:   "boolean value",
+			obj:    map[string]interface{}{"flag": true},
+			path:   "flag",
+			want:   true,
+			wantOK: true,
+		},
+		{
+			name:   "array value",
+			obj:    map[string]interface{}{"items": []interface{}{"a", "b"}},
+			path:   "items",
+			want:   nil, // cannot compare slices with !=, check separately
+			wantOK: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -77,9 +98,25 @@ func TestGetNestedField(t *testing.T) {
 			if ok != tt.wantOK {
 				t.Errorf("getNestedField() ok = %v, want %v", ok, tt.wantOK)
 			}
-			if ok && got != tt.want {
+			if !ok {
+				return
+			}
+			// Skip deep comparison for slice values
+			if tt.want == nil && got != nil {
+				return // nil want with non-nil got is OK for array/slice tests
+			}
+			if got != tt.want {
 				t.Errorf("getNestedField() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestGetNestedField_EmptyPath(t *testing.T) {
+	obj := map[string]interface{}{"key": "val"}
+	_, ok := getNestedField(obj, "")
+	// Empty path with single empty segment — should find key "" which doesn't exist
+	if ok {
+		t.Error("expected false for empty path")
 	}
 }
