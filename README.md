@@ -33,8 +33,8 @@ The version of the built binary is automatically determined from git tags. For e
 Simply run `make` to build the application. The following targets are available:
 
 - **`make build`**: Builds a single executable for your current operating system and architecture in the `dist/` directory.
-- **`make build-all`**: Cross-compiles for all target platforms (Linux amd64/arm64, macOS amd64/arm64, Windows amd64) and places the binaries flat in `dist/`.
-- **`make package`**: Builds all binaries and creates `.zip` archives for each platform in `dist/`. These archives are ready for distribution.
+- **`make build-all`**: Cross-compiles for all target platforms (Linux amd64/arm64, macOS arm64, Windows amd64) and places the binaries flat in `dist/`. macOS ships arm64 only (Apple Silicon); Intel Macs can build from source.
+- **`make package`**: Builds all binaries and creates release archives in `dist/` (`.zip` for darwin/windows, `.tar.gz` for linux). These archives are ready for distribution.
 - **`make clean`**: Removes the `dist/` directory and all build artifacts.
 
 ---
