@@ -146,7 +146,9 @@ func TestProcessLines_BasicExtraction(t *testing.T) {
 	}
 
 	var obj map[string]interface{}
-	json.Unmarshal([]byte(lines[0]), &obj)
+	if err := json.Unmarshal([]byte(lines[0]), &obj); err != nil {
+		t.Fatal(err)
+	}
 	if obj["ip"] != "192.168.1.1" {
 		t.Errorf("line 1: expected ip=192.168.1.1, got %v", obj["ip"])
 	}
@@ -230,7 +232,9 @@ func TestProcessJSON_NestedField(t *testing.T) {
 	}
 
 	var obj map[string]interface{}
-	json.Unmarshal(buf.Bytes(), &obj)
+	if err := json.Unmarshal(buf.Bytes(), &obj); err != nil {
+		t.Fatal(err)
+	}
 	if obj["user"] != "admin" {
 		t.Errorf("expected user=admin, got %v", obj["user"])
 	}
@@ -259,7 +263,9 @@ func TestProcessJSON_MissingFieldPassthrough(t *testing.T) {
 	// Should pass through unchanged
 	got := strings.TrimSpace(buf.String())
 	var obj map[string]interface{}
-	json.Unmarshal([]byte(got), &obj)
+	if err := json.Unmarshal([]byte(got), &obj); err != nil {
+		t.Fatal(err)
+	}
 	if obj["host"] != "web01" {
 		t.Errorf("expected host=web01, got %v", obj["host"])
 	}
@@ -279,7 +285,9 @@ func TestProcessJSON_NonStringFieldPassthrough(t *testing.T) {
 
 	got := strings.TrimSpace(buf.String())
 	var obj map[string]interface{}
-	json.Unmarshal([]byte(got), &obj)
+	if err := json.Unmarshal([]byte(got), &obj); err != nil {
+		t.Fatal(err)
+	}
 	if _, exists := obj["ip"]; exists {
 		t.Error("ip should not be present when field is not a string")
 	}
@@ -309,7 +317,9 @@ func TestProcessJSON_NoMatchOutputsOriginal(t *testing.T) {
 	}
 
 	var obj map[string]interface{}
-	json.Unmarshal(buf.Bytes(), &obj)
+	if err := json.Unmarshal(buf.Bytes(), &obj); err != nil {
+		t.Fatal(err)
+	}
 	if obj["host"] != "web01" {
 		t.Errorf("expected host=web01, got %v", obj["host"])
 	}
@@ -328,7 +338,9 @@ func TestProcessJSON_OverwriteExistingField(t *testing.T) {
 	}
 
 	var obj map[string]interface{}
-	json.Unmarshal(buf.Bytes(), &obj)
+	if err := json.Unmarshal(buf.Bytes(), &obj); err != nil {
+		t.Fatal(err)
+	}
 	if obj["ip"] != "192.168.1.1" {
 		t.Errorf("expected ip=192.168.1.1 (overwritten), got %v", obj["ip"])
 	}
@@ -347,7 +359,9 @@ func TestProcessJSON_UniqueFlag(t *testing.T) {
 	}
 
 	var obj map[string]interface{}
-	json.Unmarshal(buf.Bytes(), &obj)
+	if err := json.Unmarshal(buf.Bytes(), &obj); err != nil {
+		t.Fatal(err)
+	}
 	if obj["addr"] != "10.0.0.1" {
 		t.Errorf("expected single addr=10.0.0.1, got %v", obj["addr"])
 	}
@@ -392,7 +406,9 @@ func TestProcessJSON_NullFieldValue(t *testing.T) {
 	}
 
 	var obj map[string]interface{}
-	json.Unmarshal(buf.Bytes(), &obj)
+	if err := json.Unmarshal(buf.Bytes(), &obj); err != nil {
+		t.Fatal(err)
+	}
 	if _, exists := obj["ip"]; exists {
 		t.Error("ip should not be present when field value is null")
 	}
@@ -408,7 +424,9 @@ func TestProcessJSON_ArrayFieldValue(t *testing.T) {
 	}
 
 	var obj map[string]interface{}
-	json.Unmarshal(buf.Bytes(), &obj)
+	if err := json.Unmarshal(buf.Bytes(), &obj); err != nil {
+		t.Fatal(err)
+	}
 	if _, exists := obj["ip"]; exists {
 		t.Error("ip should not be present when field value is an array")
 	}
@@ -424,7 +442,9 @@ func TestProcessJSON_DeepNesting(t *testing.T) {
 	}
 
 	var obj map[string]interface{}
-	json.Unmarshal(buf.Bytes(), &obj)
+	if err := json.Unmarshal(buf.Bytes(), &obj); err != nil {
+		t.Fatal(err)
+	}
 	if obj["user"] != "admin" {
 		t.Errorf("expected user=admin from 3-level nesting, got %v", obj["user"])
 	}
@@ -445,8 +465,12 @@ func TestProcessJSON_MultipleLines(t *testing.T) {
 	}
 
 	var obj1, obj2 map[string]interface{}
-	json.Unmarshal([]byte(lines[0]), &obj1)
-	json.Unmarshal([]byte(lines[1]), &obj2)
+	if err := json.Unmarshal([]byte(lines[0]), &obj1); err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal([]byte(lines[1]), &obj2); err != nil {
+		t.Fatal(err)
+	}
 
 	if obj1["ip"] != "192.168.1.1" {
 		t.Errorf("line 1: expected ip=192.168.1.1, got %v", obj1["ip"])

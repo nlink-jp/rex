@@ -93,7 +93,7 @@ func execute(opts options, stdin io.Reader, stdout io.Writer, stderr io.Writer) 
 		if err != nil {
 			return fmt.Errorf("could not open config file %s: %w", opts.configFile, err)
 		}
-		defer file.Close()
+		defer func() { _ = file.Close() }()
 		configReader = file
 	}
 
@@ -118,7 +118,7 @@ func execute(opts options, stdin io.Reader, stdout io.Writer, stderr io.Writer) 
 		if err != nil {
 			return fmt.Errorf("could not open input file %s: %w", opts.inputFile, err)
 		}
-		defer file.Close()
+		defer func() { _ = file.Close() }()
 		reader = file
 	} else {
 		reader = stdin
@@ -130,7 +130,7 @@ func execute(opts options, stdin io.Reader, stdout io.Writer, stderr io.Writer) 
 		if err != nil {
 			return fmt.Errorf("could not create output file %s: %w", opts.outputFile, err)
 		}
-		defer file.Close()
+		defer func() { _ = file.Close() }()
 		writer = file
 	} else {
 		writer = stdout

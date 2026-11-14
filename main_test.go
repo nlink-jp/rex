@@ -156,7 +156,9 @@ func TestExecute_JSONMode(t *testing.T) {
 	}
 
 	var obj map[string]interface{}
-	json.Unmarshal(stdout.Bytes(), &obj)
+	if err := json.Unmarshal(stdout.Bytes(), &obj); err != nil {
+		t.Fatal(err)
+	}
 	if obj["ip"] != "192.168.1.1" {
 		t.Errorf("expected ip=192.168.1.1, got %v", obj["ip"])
 	}
@@ -224,7 +226,9 @@ func TestExecute_WithConfigFile(t *testing.T) {
 	}
 
 	var obj map[string]interface{}
-	json.Unmarshal(stdout.Bytes(), &obj)
+	if err := json.Unmarshal(stdout.Bytes(), &obj); err != nil {
+		t.Fatal(err)
+	}
 	if obj["level"] != "info" {
 		t.Errorf("expected level=info, got %v", obj["level"])
 	}
@@ -246,7 +250,9 @@ func TestExecute_WithInputFile(t *testing.T) {
 	}
 
 	var obj map[string]interface{}
-	json.Unmarshal(stdout.Bytes(), &obj)
+	if err := json.Unmarshal(stdout.Bytes(), &obj); err != nil {
+		t.Fatal(err)
+	}
 	if obj["ip"] != "192.168.1.1" {
 		t.Errorf("expected ip=192.168.1.1, got %v", obj["ip"])
 	}
@@ -269,7 +275,9 @@ func TestExecute_WithOutputFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	var obj map[string]interface{}
-	json.Unmarshal(data, &obj)
+	if err := json.Unmarshal(data, &obj); err != nil {
+		t.Fatal(err)
+	}
 	if obj["ip"] != "192.168.1.1" {
 		t.Errorf("expected ip=192.168.1.1, got %v", obj["ip"])
 	}
@@ -288,7 +296,9 @@ func TestExecute_UniqueFlag(t *testing.T) {
 	}
 
 	var obj map[string]interface{}
-	json.Unmarshal(stdout.Bytes(), &obj)
+	if err := json.Unmarshal(stdout.Bytes(), &obj); err != nil {
+		t.Fatal(err)
+	}
 	if obj["addr"] != "10.0.0.1" {
 		t.Errorf("expected single addr=10.0.0.1, got %v", obj["addr"])
 	}
